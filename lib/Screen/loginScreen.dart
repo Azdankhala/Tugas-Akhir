@@ -162,7 +162,7 @@ class LoginScreen extends StatelessWidget
           {
             Navigator.pop(context);
             _firebaseAuth.signOut();
-            displayToastMessage("No Account exists. Please Creat new account", context);
+            displayToastMessage("No Account exists. Please Create new account", context);
           }
       });
     }
