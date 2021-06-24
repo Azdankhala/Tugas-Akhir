@@ -14,17 +14,13 @@ import 'package:rider_app/Models/directDetails.dart';
 import 'package:rider_app/Screen/loginScreen.dart';
 import 'package:rider_app/Screen/searchScreen.dart';
 
-
-
-class MainScreen extends StatefulWidget
-{
+class MainScreen extends StatefulWidget {
   static const String idScreen = "mainScreen";
   @override
   _MainScreenState createState() => _MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin
-{
+class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
   Completer<GoogleMapController> _controllerGoogleMap = Completer();
   GoogleMapController newGoogleMapController;
 
@@ -33,7 +29,6 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin
 
   List<LatLng> pLineCoordinates = [];
   Set<Polyline> polylineSet = {};
-
 
   Position currentPosition;
   var geoLocator = Geolocator();
@@ -47,8 +42,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin
 
   bool drawerOpen = true;
 
-  resetApp()
-  {
+  resetApp() {
     setState(() {
       drawerOpen = true;
       searchContainerHeight = 300.0;
@@ -65,9 +59,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin
     locatePosition();
   }
 
-
-  void displayRideDetailsContainer() async
-  {
+  void displayRideDetailsContainer() async {
     await getPlaceDirection();
 
     setState(() {
@@ -78,17 +70,20 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin
     });
   }
 
-  void locatePosition() async
-  {
-    Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+  void locatePosition() async {
+    Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high);
     currentPosition = position;
 
     LatLng latlatposition = LatLng(position.latitude, position.longitude);
-    
-    CameraPosition cameraPosition = new CameraPosition(target: latlatposition, zoom: 14);
-    newGoogleMapController.animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
 
-    String address = await AssistantMethod.searchCoordinateAddress(position, context);
+    CameraPosition cameraPosition =
+        new CameraPosition(target: latlatposition, zoom: 14);
+    newGoogleMapController
+        .animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
+
+    String address =
+        await AssistantMethod.searchCoordinateAddress(position, context);
     print("This is your current location :: " + address);
   }
 
@@ -109,58 +104,82 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin
         width: 255.0,
         child: Drawer(
           child: ListView(
-           children: [
-             //drawer header
-             Container(
-               height: 165.0,
-                 child: DrawerHeader(
-                   decoration: BoxDecoration(color: Colors.white),
-                   child: Row(
-                     children: [
-                       Image.asset("images/user_icon.png", height: 65.0, width: 65.0,),
-                       SizedBox(width: 16.0,),
-                       Column(
-                         mainAxisAlignment: MainAxisAlignment.center,
-                         children: [
-                           Text("Profile Name", style: TextStyle(fontSize: 16.0, fontFamily: "Brand-Bold"),),
-                           SizedBox(height: 6.0,),
-                           Text("Visit Profile"),
-                         ],
-                       )
-                     ],
-                   ),
-                 ),
-             ),
+            children: [
+              //drawer header
+              Container(
+                height: 165.0,
+                child: DrawerHeader(
+                  decoration: BoxDecoration(color: Colors.white),
+                  child: Row(
+                    children: [
+                      Image.asset(
+                        "images/user_icon.png",
+                        height: 65.0,
+                        width: 65.0,
+                      ),
+                      SizedBox(
+                        width: 16.0,
+                      ),
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            "Profile Name",
+                            style: TextStyle(
+                                fontSize: 16.0, fontFamily: "Brand-Bold"),
+                          ),
+                          SizedBox(
+                            height: 6.0,
+                          ),
+                          Text("Visit Profile"),
+                        ],
+                      )
+                    ],
+                  ),
+                ),
+              ),
 
-             DividerWidget(),
+              DividerWidget(),
 
-             SizedBox(height: 12.0,),
+              SizedBox(
+                height: 12.0,
+              ),
 
-             //Drawer Body
-             ListTile(
-               leading: Icon(Icons.history),
-               title: Text("History", style: TextStyle(fontSize: 15.0),),
-             ),
-             ListTile(
-               leading: Icon(Icons.person),
-               title: Text("Visit Profile", style: TextStyle(fontSize: 15.0),),
-             ),
-             ListTile(
-               leading: Icon(Icons.info),
-               title: Text("About", style: TextStyle(fontSize: 15.0),),
-             ),
-             GestureDetector(
-               onTap: ()
-               {
-                 //Navigator.pushAndRemoveUntil(context, LoginScreen.idScreen, (route) => false);// kelarin
-               },
-               child: ListTile(
-                 leading: Icon(Icons.logout),
-                 title: Text("Sign Out", style: TextStyle(fontSize: 15.0),),
-               ),
-             ),
-
-           ],
+              //Drawer Body
+              ListTile(
+                leading: Icon(Icons.history),
+                title: Text(
+                  "History",
+                  style: TextStyle(fontSize: 15.0),
+                ),
+              ),
+              ListTile(
+                leading: Icon(Icons.person),
+                title: Text(
+                  "Visit Profile",
+                  style: TextStyle(fontSize: 15.0),
+                ),
+              ),
+              ListTile(
+                leading: Icon(Icons.info),
+                title: Text(
+                  "About",
+                  style: TextStyle(fontSize: 15.0),
+                ),
+              ),
+              GestureDetector(
+                onTap: () {
+                  //Navigator.pushAndRemoveUntil(context, LoginScreen.idScreen, (route) => false);// kelarin
+                },
+                child: ListTile(
+                  leading: Icon(Icons.logout),
+                  title: Text(
+                    "Sign Out",
+                    style: TextStyle(fontSize: 15.0),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -177,8 +196,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin
             polylines: polylineSet,
             markers: markersSet,
             circles: circlesSet,
-            onMapCreated: (GoogleMapController controller)
-            {
+            onMapCreated: (GoogleMapController controller) {
               _controllerGoogleMap.complete(controller);
               newGoogleMapController = controller;
 
@@ -195,16 +213,12 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin
             top: 38.0,
             left: 22.0,
             child: GestureDetector(
-              onTap: ()
-              {
-                if(drawerOpen)
-                {
+              onTap: () {
+                if (drawerOpen) {
                   scaffoldkey.currentState.openDrawer();
+                } else {
+                  resetApp();
                 }
-                else
-                  {
-                    resetApp();
-                  }
               },
               child: Container(
                 decoration: BoxDecoration(
@@ -224,7 +238,10 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin
                 ),
                 child: CircleAvatar(
                   backgroundColor: Colors.white,
-                  child: Icon((drawerOpen) ? Icons.menu : Icons.close, color: Colors.black,),
+                  child: Icon(
+                    (drawerOpen) ? Icons.menu : Icons.close,
+                    color: Colors.black,
+                  ),
                   radius: 20.0,
                 ),
               ),
@@ -242,34 +259,43 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin
               child: Container(
                 height: searchContainerHeight,
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                borderRadius: BorderRadius.only(topLeft: Radius.circular(18.0), topRight: Radius.circular(18.0)),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black,
+                    color: Colors.white,
+                    borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(18.0),
+                        topRight: Radius.circular(18.0)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black,
                         blurRadius: 16.0,
                         spreadRadius: 0.5,
                         offset: Offset(0.7, 0.7),
-                  )
-                ]
-              ),
+                      )
+                    ]),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 18.0),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 24.0, vertical: 18.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       SizedBox(height: 6.0),
-                      Text("Hi There, ", style: TextStyle(fontSize: 10.0),),
-                      Text("Where to?, ", style: TextStyle(fontSize: 20.0, fontFamily: "Brand-Bold"),),
+                      Text(
+                        "Hi There, ",
+                        style: TextStyle(fontSize: 10.0),
+                      ),
+                      Text(
+                        "Where to?, ",
+                        style:
+                            TextStyle(fontSize: 20.0, fontFamily: "Brand-Bold"),
+                      ),
                       SizedBox(height: 20.0),
-
                       GestureDetector(
-                        onTap: () async
-                        {
-                          var res = await Navigator.push(context, MaterialPageRoute(builder: (context)=> SearchScreen()));
+                        onTap: () async {
+                          var res = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => SearchScreen()));
 
-                          if(res == "obtainDirection")
-                          {
+                          if (res == "obtainDirection") {
                             displayRideDetailsContainer();
                           }
                         },
@@ -284,42 +310,57 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin
                                   spreadRadius: 0.5,
                                   offset: Offset(0.7, 0.7),
                                 )
-                              ]
-                          ),
+                              ]),
                           child: Padding(
                             padding: const EdgeInsets.all(10.0),
                             child: Row(
                               children: [
-                                Icon(Icons.search, color: Colors.blueAccent,),
-                                SizedBox(width: 10.0,),
+                                Icon(
+                                  Icons.search,
+                                  color: Colors.blueAccent,
+                                ),
+                                SizedBox(
+                                  width: 10.0,
+                                ),
                                 Text("Search Drop off")
                               ],
                             ),
                           ),
                         ),
                       ),
-
                       SizedBox(height: 15.0),
-
                       DividerWidget(),
-
                       SizedBox(height: 16.0),
-
                       Row(
                         children: [
-                          Icon(Icons.location_on, color: Colors.grey,),
-                          SizedBox(width: 10.0,),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                Provider.of<AppData>(context).PickUpLocation != null
-                                    ? Provider.of<AppData>(context).PickUpLocation.placeName
-                                    : "Add Home"
-                              ),
-                              SizedBox(height: 4.0,),
-                              Text("Your Current Location", style: TextStyle(color: Colors.black54, fontSize: 12.0),),
-                            ],
+                          Icon(
+                            Icons.location_on,
+                            color: Colors.grey,
+                          ),
+                          SizedBox(
+                            width: 10.0,
+                          ),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(Provider.of<AppData>(context)
+                                            .pickUpLocation !=
+                                        null
+                                    ? Provider.of<AppData>(context)
+                                        .pickUpLocation
+                                        .placeName
+                                    : "Add Home"),
+                                SizedBox(
+                                  height: 4.0,
+                                ),
+                                Text(
+                                  "Your Current Location",
+                                  style: TextStyle(
+                                      color: Colors.black54, fontSize: 12.0),
+                                ),
+                              ],
+                            ),
                           )
                         ],
                       ),
@@ -342,18 +383,19 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin
                 height: rideDetailsContainerHeight,
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.only(topLeft: Radius.circular(16.0), topRight: Radius.circular(16.0),),
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(16.0),
+                    topRight: Radius.circular(16.0),
+                  ),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black,
                       blurRadius: 16.0,
                       spreadRadius: 0.5,
                       offset: Offset(0.7, 0.7),
-
                     )
                   ],
                 ),
-
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 35.0),
                   child: Column(
@@ -365,16 +407,32 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin
                           padding: EdgeInsets.symmetric(horizontal: 25.0),
                           child: Row(
                             children: [
-                              Image.asset("images/rider.png", height: 70.0, width: 50.0,),
-                              SizedBox(width: 16.0,),
+                              Image.asset(
+                                "images/rider.png",
+                                height: 70.0,
+                                width: 50.0,
+                              ),
+                              SizedBox(
+                                width: 16.0,
+                              ),
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    "Motorcycle", style: TextStyle(fontSize: 18.0,fontFamily: "Brand-Bold",),
+                                    "Motorcycle",
+                                    style: TextStyle(
+                                      fontSize: 18.0,
+                                      fontFamily: "Brand-Bold",
+                                    ),
                                   ),
                                   Text(
-                                    ((tripDirectionDetails != null) ? tripDirectionDetails.distanceText :'') , style: TextStyle(fontSize: 16.0, color: Colors.grey,),
+                                    ((tripDirectionDetails != null)
+                                        ? tripDirectionDetails.distanceText
+                                        : ''),
+                                    style: TextStyle(
+                                      fontSize: 16.0,
+                                      color: Colors.grey,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -389,30 +447,26 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin
             ),
           ),
         ],
-
       ),
     );
   }
 
-  Future<void> getPlaceDirection() async
-  {
-    var initialPos = Provider
-        .of<AppData>(context, listen: false)
-        .PickUpLocation;
-    var finalPos = Provider
-        .of<AppData>(context, listen: false)
-        .dropOffLocation;
+  Future<void> getPlaceDirection() async {
+    var initialPos =
+        Provider.of<AppData>(context, listen: false).pickUpLocation;
+    var finalPos = Provider.of<AppData>(context, listen: false).dropOffLocation;
 
     var pickUpLatlng = LatLng(initialPos.latitude, initialPos.longitude);
     var dropOffLatlng = LatLng(finalPos.latitude, finalPos.longitude);
 
     showDialog(
         context: context,
-        builder: (BuildContext context) =>
-            ProgressDialog(message: "Please wait...",)
-    );
+        builder: (BuildContext context) => ProgressDialog(
+              message: "Please wait...",
+            ));
 
-    var details = await AssistantMethod.obtainPlaceDirectionDetails(pickUpLatlng, dropOffLatlng);
+    var details = await AssistantMethod.obtainPlaceDirectionDetails(
+        pickUpLatlng, dropOffLatlng);
     setState(() {
       tripDirectionDetails = details;
     });
@@ -423,14 +477,14 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin
     print(details.encodedPoints);
 
     PolylinePoints polylinePoints = PolylinePoints();
-    List<PointLatLng> decodedPolyLinePointsResult = polylinePoints
-        .decodePolyline(details.encodedPoints);
+    List<PointLatLng> decodedPolyLinePointsResult =
+        polylinePoints.decodePolyline(details.encodedPoints);
 
     pLineCoordinates.clear();
     if (decodedPolyLinePointsResult.isNotEmpty) {
       decodedPolyLinePointsResult.forEach((PointLatLng pointLatLng) {
-        pLineCoordinates.add(
-            LatLng(pointLatLng.latitude, pointLatLng.longitude));
+        pLineCoordinates
+            .add(LatLng(pointLatLng.latitude, pointLatLng.longitude));
       });
     }
 
@@ -456,36 +510,33 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin
         pickUpLatlng.longitude > dropOffLatlng.longitude) {
       latLngBounds =
           LatLngBounds(southwest: dropOffLatlng, northeast: pickUpLatlng);
-    }
-    else if (pickUpLatlng.longitude > dropOffLatlng.longitude) {
+    } else if (pickUpLatlng.longitude > dropOffLatlng.longitude) {
       latLngBounds = LatLngBounds(
           southwest: LatLng(pickUpLatlng.latitude, dropOffLatlng.longitude),
           northeast: LatLng(dropOffLatlng.latitude, pickUpLatlng.longitude));
-    }
-    else if (pickUpLatlng.latitude > dropOffLatlng.latitude) {
+    } else if (pickUpLatlng.latitude > dropOffLatlng.latitude) {
       latLngBounds = LatLngBounds(
           southwest: LatLng(dropOffLatlng.latitude, pickUpLatlng.longitude),
           northeast: LatLng(pickUpLatlng.latitude, dropOffLatlng.longitude));
-    }
-    else {
+    } else {
       latLngBounds =
           LatLngBounds(southwest: pickUpLatlng, northeast: dropOffLatlng);
     }
-    newGoogleMapController.animateCamera(
-        CameraUpdate.newLatLngBounds(latLngBounds, 70));
+    newGoogleMapController
+        .animateCamera(CameraUpdate.newLatLngBounds(latLngBounds, 70));
 
     Marker pickUpLocMarker = Marker(
       icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange),
-      infoWindow: InfoWindow(
-          title: initialPos.placeName, snippet: "My Location"),
+      infoWindow:
+          InfoWindow(title: initialPos.placeName, snippet: "My Location"),
       position: pickUpLatlng,
       markerId: MarkerId("pickUpId"),
     );
 
     Marker dropOffLocMarker = Marker(
       icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
-      infoWindow: InfoWindow(
-          title: finalPos.placeName, snippet: "DropOff Location"),
+      infoWindow:
+          InfoWindow(title: finalPos.placeName, snippet: "DropOff Location"),
       position: dropOffLatlng,
       markerId: MarkerId("dropOffId"),
     );
