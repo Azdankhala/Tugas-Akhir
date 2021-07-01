@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:rider_app/AllWidgets/progressDialog.dart';
@@ -6,8 +7,7 @@ import 'package:rider_app/Screen/loginScreen.dart';
 import 'package:rider_app/Screen/mainscreen.dart';
 import 'package:rider_app/main.dart';
 
-class RegisterScreen extends StatelessWidget
-{
+class RegisterScreen extends StatelessWidget {
   static const String idScreen = "register";
 
   TextEditingController nametextEditingController = TextEditingController();
@@ -24,27 +24,30 @@ class RegisterScreen extends StatelessWidget
           padding: EdgeInsets.all(8.0),
           child: Column(
             children: [
-              SizedBox(height: 35.0,),
+              SizedBox(
+                height: 35.0,
+              ),
               Image(
                 image: AssetImage("images/logo.png"),
                 width: 390.0,
                 height: 250.0,
                 alignment: Alignment.center,
               ),
-
-              SizedBox(height: 1.0,),
+              SizedBox(
+                height: 1.0,
+              ),
               Text(
                 "Register",
                 style: TextStyle(fontSize: 24.0, fontFamily: "Brand Bold"),
                 textAlign: TextAlign.center,
               ),
-
               Padding(
                 padding: EdgeInsets.all(20.0),
                 child: Column(
                   children: [
-
-                    SizedBox(height: 1.0,),
+                    SizedBox(
+                      height: 1.0,
+                    ),
                     TextField(
                       controller: nametextEditingController,
                       keyboardType: TextInputType.text,
@@ -60,8 +63,9 @@ class RegisterScreen extends StatelessWidget
                       ),
                       style: TextStyle(fontSize: 14.0),
                     ),
-
-                    SizedBox(height: 1.0,),
+                    SizedBox(
+                      height: 1.0,
+                    ),
                     TextField(
                       controller: emailtextEditingController,
                       keyboardType: TextInputType.emailAddress,
@@ -77,8 +81,9 @@ class RegisterScreen extends StatelessWidget
                       ),
                       style: TextStyle(fontSize: 14.0),
                     ),
-
-                    SizedBox(height: 1.0,),
+                    SizedBox(
+                      height: 1.0,
+                    ),
                     TextField(
                       controller: phoneextEditingController,
                       keyboardType: TextInputType.phone,
@@ -94,8 +99,9 @@ class RegisterScreen extends StatelessWidget
                       ),
                       style: TextStyle(fontSize: 14.0),
                     ),
-
-                    SizedBox(height: 1.0,),
+                    SizedBox(
+                      height: 1.0,
+                    ),
                     TextField(
                       controller: passwordtextEditingController,
                       obscureText: true,
@@ -111,8 +117,9 @@ class RegisterScreen extends StatelessWidget
                       ),
                       style: TextStyle(fontSize: 14.0),
                     ),
-
-                    SizedBox(height: 20.0,),
+                    SizedBox(
+                      height: 20.0,
+                    ),
                     RaisedButton(
                       color: Colors.brown,
                       textColor: Colors.white,
@@ -121,45 +128,41 @@ class RegisterScreen extends StatelessWidget
                         child: Center(
                           child: Text(
                             "Creat Account",
-                            style: TextStyle(fontSize: 18.0, fontFamily: "Brand Bold"),
+                            style: TextStyle(
+                                fontSize: 18.0, fontFamily: "Brand Bold"),
                           ),
                         ),
                       ),
                       shape: new RoundedRectangleBorder(
                         borderRadius: new BorderRadius.circular(24.0),
                       ),
-                      onPressed: ()
-                      {
-                        if(nametextEditingController.text.length < 3)
-                          {
-                            displayToastMessage("Name must be atleast 3 characters", context);
-                          }
-                        else if(!emailtextEditingController.text.contains("@"))
-                          {
-                            displayToastMessage("Email address is not Valid", context);
-                          }
-                        else if(phoneextEditingController.text.isEmpty)
-                        {
-                          displayToastMessage("Please fill the phone number", context);
+                      onPressed: () {
+                        if (nametextEditingController.text.length < 3) {
+                          displayToastMessage(
+                              "Name must be atleast 3 characters", context);
+                        } else if (!emailtextEditingController.text
+                            .contains("@")) {
+                          displayToastMessage(
+                              "Email address is not Valid", context);
+                        } else if (phoneextEditingController.text.isEmpty) {
+                          displayToastMessage(
+                              "Please fill the phone number", context);
+                        } else if (passwordtextEditingController.text.length <
+                            6) {
+                          displayToastMessage(
+                              "Password must be atleast 6 characters", context);
+                        } else {
+                          registerToFb(context);
                         }
-                        else if(passwordtextEditingController.text.length < 6)
-                        {
-                          displayToastMessage("Password must be atleast 6 characters", context);
-                        }
-                        else
-                          {
-                            registerNewUser(context);
-                          }
                       },
                     ),
                   ],
                 ),
               ),
-
               FlatButton(
-                onPressed: ()
-                {
-                  Navigator.pushNamedAndRemoveUntil(context, LoginScreen.idScreen, (route) => false);
+                onPressed: () {
+                  Navigator.pushNamedAndRemoveUntil(
+                      context, LoginScreen.idScreen, (route) => false);
                 },
                 child: Text(
                   "Already have an Account? Login Here",
@@ -172,55 +175,59 @@ class RegisterScreen extends StatelessWidget
     );
   }
 
+  FirebaseAuth firebaseAuth = FirebaseAuth.instance;
+  DatabaseReference dbRef =
+      FirebaseDatabase.instance.reference().child("Users");
 
-  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
-
-  void registerNewUser(BuildContext context) async
-  {
+  void registerToFb(BuildContext context) {
     showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (BuildContext context)
-        {
-          return ProgressDialog(message: "Registering, please wait...",);
-        }
-    );
-
-    final User firebaseUser = ( await _firebaseAuth
+        builder: (BuildContext context) {
+          return ProgressDialog(
+            message: "Authenticating, please wait...",
+          );
+        });
+    firebaseAuth
         .createUserWithEmailAndPassword(
-        email: emailtextEditingController.text,
-        password: passwordtextEditingController.text
-    ).catchError((errMsg){
-      Navigator.pop(context);
-      displayToastMessage("Error: " + errMsg.toString(), context);
-    })).user;
-
-    if(firebaseUser != null)//user created
-      {
-        //save user info to database
-      usersRef.child(firebaseUser.uid);
-
-      Map userDataMap = {
-        "name": nametextEditingController.text.trim(),
-        "email": emailtextEditingController.text.trim(),
-        "phone": phoneextEditingController.text.trim(),
-      };
-
-      usersRef.child(firebaseUser.uid).set(userDataMap);
-      displayToastMessage("Your Account has been created", context);
-
-      Navigator.pushNamedAndRemoveUntil(context,MainScreen.idScreen, (route) => false);
-      }
-    else
-      {
-        Navigator.pop(context);
-        //error occured
-        displayToastMessage("New user account has not been Created", context);
-      }
+            email: emailtextEditingController.text,
+            password: passwordtextEditingController.text)
+        .then((result) {
+      dbRef.child(result.user.uid).set({
+        "name": nametextEditingController.text,
+        "email": emailtextEditingController.text,
+        "password": passwordtextEditingController.text,
+        "phone": phoneextEditingController.text,
+      }).then((res) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+              builder: (context) => MainScreen(
+                    uid: result.user.uid,
+                  )),
+        );
+      });
+    }).catchError((err) {
+      showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text("Error"),
+              content: Text(err.message),
+              actions: [
+                TextButton(
+                  child: Text("Ok"),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                )
+              ],
+            );
+          });
+    });
   }
 }
 
-displayToastMessage(String message, BuildContext context)
-{
+displayToastMessage(String message, BuildContext context) {
   Fluttertoast.showToast(msg: message);
 }

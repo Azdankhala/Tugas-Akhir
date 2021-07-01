@@ -1,3 +1,6 @@
+import 'dart:math';
+
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -12,7 +15,9 @@ import 'package:rider_app/Models/address.dart';
 import 'package:rider_app/Models/placePredictions.dart';
 
 class SearchScreen extends StatefulWidget {
-  const SearchScreen({Key key}) : super(key: key);
+  final String uid;
+
+  const SearchScreen({Key key, this.uid}) : super(key: key);
 
   @override
   _SearchScreenState createState() => _SearchScreenState();
@@ -75,6 +80,28 @@ class _SearchScreenState extends State<SearchScreen> {
       setState(() {
         _scanBarcode = barcodeScanRes;
       });
+    }
+
+    void readHistoryFB(String uid) async {
+      DatabaseReference dbRef =
+          FirebaseDatabase.instance.reference().child("Users");
+
+      var oy;
+      await dbRef
+          .child(uid)
+          .child('history')
+          .once()
+          .then((DataSnapshot dataSnapshot) {
+        Map listHistory = dataSnapshot.value;
+
+        List idhistory = listHistory.keys.toList();
+
+        for (var i = 0; i < idhistory.length; i++) {
+          oy = listHistory[idhistory[i]]['placeId'].toString();
+          findPlaceByID(oy);
+        }
+      });
+      // print(listHistory);
     }
 
     return Scaffold(
@@ -195,6 +222,22 @@ class _SearchScreenState extends State<SearchScreen> {
           SizedBox(
             height: 10.0,
           ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              TextButton(
+                onPressed: () => scanQR(),
+                child: Text("QR Scanner"),
+              ),
+              TextButton(
+                onPressed: () {
+                  placePredictionsList.clear();
+                  readHistoryFB(widget.uid);
+                },
+                child: Text("History"),
+              ),
+            ],
+          ),
           (placePredictionsList.length > 0)
               ? Padding(
                   padding:
@@ -204,6 +247,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     itemBuilder: (context, index) {
                       return PredictionTile(
                         placePrediction: placePredictionsList[index],
+                        uid: widget.uid,
                       );
                     },
                     separatorBuilder: (BuildContext context, int index) =>
@@ -214,10 +258,6 @@ class _SearchScreenState extends State<SearchScreen> {
                   ),
                 )
               : Container(),
-          TextButton(
-            onPressed: () => scanQR(),
-            child: Text("QR Scanner"),
-          ),
         ],
       ),
     );
@@ -247,19 +287,69 @@ class _SearchScreenState extends State<SearchScreen> {
       }
     }
   }
+
+  void findPlaceByID(String placeName) async {
+    if (placeName.length > 1) {
+      String autoCompleteUrl =
+          "https://maps.googleapis.com/maps/api/place/details/json?place_id=$placeName&key=$mapkey";
+
+      var res = await RequestAssistant.getRequest(Uri.parse(autoCompleteUrl));
+
+      if (res == "failed") {
+        return;
+      }
+
+      if (res["status"] == "OK") {
+        Address address = Address();
+        address.placeFormattedAddress = res["result"]["vicinity"];
+        address.placeName = res["result"]["name"];
+        address.placeId = placeName;
+        address.latitude = res["result"]["geometry"]["location"]["lat"];
+        address.longitude = res["result"]["geometry"]["location"]["lng"];
+
+        PlacePrediction pred = PlacePrediction();
+
+        pred.secondary_text = address.placeFormattedAddress;
+        pred.main_text = address.placeName;
+        pred.place_id = address.placeId;
+
+        setState(() {
+          placePredictionsList.add(pred);
+        });
+      }
+    }
+  }
+}
+
+void addHistoryFB(String uid, Address address) {
+  DatabaseReference dbRef =
+      FirebaseDatabase.instance.reference().child("Users");
+
+  dbRef
+      .child(uid)
+      .child('history')
+      .child(Random().nextInt(10000).toString())
+      .set({
+    "latitude": address.latitude,
+    "longitude": address.longitude,
+    "placeFormattedAddress": address.placeFormattedAddress,
+    "placeId": address.placeId,
+    "placeName": address.placeName
+  });
 }
 
 class PredictionTile extends StatelessWidget {
   final PlacePrediction placePrediction;
+  final String uid;
 
-  PredictionTile({Key key, this.placePrediction}) : super(key: key);
+  PredictionTile({Key key, this.placePrediction, this.uid}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return FlatButton(
       padding: EdgeInsets.all(0.0),
       onPressed: () {
-        getPlacedAddressedDetails(placePrediction.place_id, context);
+        getPlacedAddressedDetails(placePrediction.place_id, uid, context);
       },
       child: Container(
         child: Column(
@@ -309,38 +399,73 @@ class PredictionTile extends StatelessWidget {
       ),
     );
   }
+}
 
-  void getPlacedAddressedDetails(String placeId, context) async {
-    showDialog(
-        context: context,
-        builder: (BuildContext context) => ProgressDialog(
-              message: "Setting Dropoff, Please wait...",
-            ));
+Future<bool> checkerHistory(String uid, Address address) async {
+  DatabaseReference dbRef =
+      FirebaseDatabase.instance.reference().child("Users");
 
-    String placeDetailsUrl =
-        "https://maps.googleapis.com/maps/api/place/details/json?place_id=$placeId&key=$mapkey";
+  bool status = false;
 
-    var res = await RequestAssistant.getRequest(Uri.parse(placeDetailsUrl));
+  await dbRef
+      .child(uid)
+      .child('history')
+      .once()
+      .then((DataSnapshot dataSnapshot) {
+    Map listHistory = dataSnapshot.value;
 
-    Navigator.pop(context);
+    List idhistory = listHistory.keys.toList();
 
-    if (res == "failed") {
-      return;
+    for (var i = 0; i < idhistory.length; i++) {
+      if (address.placeName ==
+          listHistory[idhistory[i]]['placeName'].toString()) {
+        status = true;
+      }
+    }
+  });
+  if (status == false) {
+    return false;
+  } else {
+    return true;
+  }
+}
+
+void getPlacedAddressedDetails(
+    String placeId, String uid, BuildContext context) async {
+  showDialog(
+      context: context,
+      builder: (BuildContext context) => ProgressDialog(
+            message: "Setting Dropoff, Please wait...",
+          ));
+
+  String placeDetailsUrl =
+      "https://maps.googleapis.com/maps/api/place/details/json?place_id=$placeId&key=$mapkey";
+
+  var res = await RequestAssistant.getRequest(Uri.parse(placeDetailsUrl));
+
+  Navigator.pop(context);
+
+  if (res == "failed") {
+    return;
+  }
+
+  if (res["status"] == "OK") {
+    Address address = Address();
+    address.placeName = res["result"]["name"];
+    address.placeId = placeId;
+    address.latitude = res["result"]["geometry"]["location"]["lat"];
+    address.longitude = res["result"]["geometry"]["location"]["lng"];
+
+    Future<bool> histostat = checkerHistory(uid, address);
+    if (await histostat == false) {
+      addHistoryFB(uid, address);
     }
 
-    if (res["status"] == "OK") {
-      Address address = Address();
-      address.placeName = res["result"]["name"];
-      address.placeId = placeId;
-      address.latitude = res["result"]["geometry"]["location"]["lat"];
-      address.longitude = res["result"]["geometry"]["location"]["lng"];
+    Provider.of<AppData>(context, listen: false)
+        .updatedropOffLocationAddress(address);
+    print("This is Drop Off Location :: ");
+    print(address.placeName);
 
-      Provider.of<AppData>(context, listen: false)
-          .updatedropOffLocationAddress(address);
-      print("This is Drop Off Location :: ");
-      print(address.placeName);
-
-      Navigator.pop(context, "obtainDirection");
-    }
+    Navigator.pop(context, "obtainDirection");
   }
 }

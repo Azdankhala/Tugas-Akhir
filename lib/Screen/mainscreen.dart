@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
@@ -16,6 +17,10 @@ import 'package:rider_app/Screen/searchScreen.dart';
 
 class MainScreen extends StatefulWidget {
   static const String idScreen = "mainScreen";
+  final String uid;
+
+  const MainScreen({Key key, this.uid}) : super(key: key);
+
   @override
   _MainScreenState createState() => _MainScreenState();
 }
@@ -94,6 +99,8 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    String uid = widget.uid;
+
     return Scaffold(
       key: scaffoldkey,
       appBar: AppBar(
@@ -169,6 +176,14 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
               ),
               GestureDetector(
                 onTap: () {
+                  FirebaseAuth.instance
+                      .signOut()
+                      .then((result) => Navigator.pushReplacementNamed(
+                          context, LoginScreen.idScreen))
+                      .catchError((err) {
+                    print(err);
+                  });
+
                   //Navigator.pushAndRemoveUntil(context, LoginScreen.idScreen, (route) => false);// kelarin
                 },
                 child: ListTile(
@@ -293,7 +308,9 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
                           var res = await Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => SearchScreen()));
+                                  builder: (context) => SearchScreen(
+                                        uid: uid,
+                                      )));
 
                           if (res == "obtainDirection") {
                             displayRideDetailsContainer();
