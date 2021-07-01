@@ -53,7 +53,6 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
       searchContainerHeight = 300.0;
       rideDetailsContainerHeight = 0;
       bottomPaddingOfMap = 230.0;
-      drawerOpen = false;
 
       polylineSet.clear();
       markersSet.clear();
