@@ -407,22 +407,27 @@ Future<bool> checkerHistory(String uid, Address address) async {
 
   bool status = false;
 
-  await dbRef
-      .child(uid)
-      .child('history')
-      .once()
-      .then((DataSnapshot dataSnapshot) {
-    Map listHistory = dataSnapshot.value;
+  try {
+    await dbRef
+        .child(uid)
+        .child('history')
+        .once()
+        .then((DataSnapshot dataSnapshot) {
+      Map listHistory = dataSnapshot.value;
 
-    List idhistory = listHistory.keys.toList();
+      List idhistory = listHistory.keys.toList();
 
-    for (var i = 0; i < idhistory.length; i++) {
-      if (address.placeName ==
-          listHistory[idhistory[i]]['placeName'].toString()) {
-        status = true;
+      for (var i = 0; i < idhistory.length; i++) {
+        if (address.placeName ==
+            listHistory[idhistory[i]]['placeName'].toString()) {
+          status = true;
+        }
       }
-    }
-  });
+    });
+  } catch (e) {
+    return false;
+  }
+
   if (status == false) {
     return false;
   } else {
