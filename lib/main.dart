@@ -8,17 +8,18 @@ import 'package:rider_app/Screen/loginScreen.dart';
 import 'package:rider_app/Screen/mainscreen.dart';
 import 'package:rider_app/Screen/registerScreen.dart';
 
-void main() async
-{
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   runApp(MyApp());
 }
 
-DatabaseReference usersRef= FirebaseDatabase.instance.reference().child("users");
+var crrntuser = FirebaseAuth.instance.currentUser;
+
+DatabaseReference uidcrrnt =
+    FirebaseDatabase.instance.reference().child("Users").child(crrntuser.uid);
 
 class MyApp extends StatelessWidget {
-
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
@@ -28,14 +29,16 @@ class MyApp extends StatelessWidget {
         theme: ThemeData(
           primarySwatch: Colors.blue,
         ),
-        initialRoute: FirebaseAuth.instance.currentUser == null ? LoginScreen.idScreen : MainScreen.idScreen,
-          routes:
-        {
+        initialRoute:
+            crrntuser == null ? LoginScreen.idScreen : MainScreen.idScreen,
+        routes: {
           RegisterScreen.idScreen: (context) => RegisterScreen(),
           LoginScreen.idScreen: (context) => LoginScreen(),
-          MainScreen.idScreen: (context) => MainScreen(),
+          MainScreen.idScreen: (context) => MainScreen(
+                uid: uidcrrnt.key,
+              ),
         },
-          debugShowCheckedModeBanner: false,
+        debugShowCheckedModeBanner: false,
       ),
     );
   }
