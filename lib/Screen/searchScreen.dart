@@ -34,6 +34,7 @@ class _SearchScreenState extends State<SearchScreen> {
         Provider.of<AppData>(context).pickUpLocation.placeName ?? "";
     pickUpTextEditingController.text = placeAddress;
 
+    // ignore: unused_local_variable
     String _scanBarcode = '';
 
     Future<void> scanQR() async {
@@ -246,7 +247,8 @@ class _SearchScreenState extends State<SearchScreen> {
                     padding: EdgeInsets.all(0.0),
                     itemBuilder: (context, index) {
                       return PredictionTile(
-                        placePrediction: placePredictionsList[index],
+                        placePrediction:
+                            placePredictionsList[index] ?? PlacePrediction(),
                         uid: widget.uid,
                       );
                     },
@@ -309,9 +311,9 @@ class _SearchScreenState extends State<SearchScreen> {
 
         PlacePrediction pred = PlacePrediction();
 
-        pred.secondary_text = address.placeFormattedAddress;
-        pred.main_text = address.placeName;
-        pred.place_id = address.placeId;
+        pred.secondaryText = address.placeFormattedAddress;
+        pred.mainText = address.placeName;
+        pred.placeId = address.placeId;
 
         setState(() {
           placePredictionsList.add(pred);
@@ -346,10 +348,9 @@ class PredictionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FlatButton(
-      padding: EdgeInsets.all(0.0),
+    return TextButton(
       onPressed: () {
-        getPlacedAddressedDetails(placePrediction.place_id, uid, context);
+        getPlacedAddressedDetails(placePrediction.placeId, uid, context);
       },
       child: Container(
         child: Column(
@@ -371,7 +372,7 @@ class PredictionTile extends StatelessWidget {
                         width: 8.0,
                       ),
                       Text(
-                        placePrediction.main_text,
+                        placePrediction.mainText ?? '',
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(fontSize: 16.0),
                       ),
@@ -379,7 +380,7 @@ class PredictionTile extends StatelessWidget {
                         height: 8.0,
                       ),
                       Text(
-                        placePrediction.secondary_text,
+                        placePrediction.secondaryText ?? '',
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(fontSize: 12.0, color: Colors.grey),
                       ),
