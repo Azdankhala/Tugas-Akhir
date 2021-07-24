@@ -5,14 +5,21 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:rider_app/AllWidgets/progressDialog.dart';
 import 'package:rider_app/Screen/loginScreen.dart';
 import 'package:rider_app/Screen/mainscreen.dart';
-import 'package:rider_app/main.dart';
 
-class RegisterScreen extends StatelessWidget {
+class RegisterScreen extends StatefulWidget {
   static const String idScreen = "register";
 
+  @override
+  _RegisterScreenState createState() => _RegisterScreenState();
+}
+
+class _RegisterScreenState extends State<RegisterScreen> {
   TextEditingController nametextEditingController = TextEditingController();
+
   TextEditingController emailtextEditingController = TextEditingController();
+
   TextEditingController phoneextEditingController = TextEditingController();
+
   TextEditingController passwordtextEditingController = TextEditingController();
 
   @override
@@ -120,9 +127,13 @@ class RegisterScreen extends StatelessWidget {
                     SizedBox(
                       height: 20.0,
                     ),
-                    RaisedButton(
-                      color: Colors.brown,
-                      textColor: Colors.white,
+                    ElevatedButton(
+                      style: ButtonStyle(
+                        backgroundColor: MaterialStateColor.resolveWith(
+                            (states) => Colors.brown),
+                        foregroundColor: MaterialStateColor.resolveWith(
+                            (states) => Colors.white),
+                      ),
                       child: Container(
                         height: 50.0,
                         child: Center(
@@ -132,9 +143,6 @@ class RegisterScreen extends StatelessWidget {
                                 fontSize: 18.0, fontFamily: "Brand Bold"),
                           ),
                         ),
-                      ),
-                      shape: new RoundedRectangleBorder(
-                        borderRadius: new BorderRadius.circular(24.0),
                       ),
                       onPressed: () {
                         if (nametextEditingController.text.length < 3) {
@@ -159,7 +167,7 @@ class RegisterScreen extends StatelessWidget {
                   ],
                 ),
               ),
-              FlatButton(
+              TextButton(
                 onPressed: () {
                   Navigator.pushNamedAndRemoveUntil(
                       context, LoginScreen.idScreen, (route) => false);
@@ -176,6 +184,7 @@ class RegisterScreen extends StatelessWidget {
   }
 
   FirebaseAuth firebaseAuth = FirebaseAuth.instance;
+
   DatabaseReference dbRef =
       FirebaseDatabase.instance.reference().child("Users");
 

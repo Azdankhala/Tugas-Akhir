@@ -1,14 +1,19 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:rider_app/AllWidgets/progressDialog.dart';
 import 'package:rider_app/Screen/mainscreen.dart';
 import 'package:rider_app/Screen/registerScreen.dart';
-import 'package:rider_app/main.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   static const String idScreen = "login";
+
+  @override
+  _LoginScreenState createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
   TextEditingController emailtextEditingController = TextEditingController();
+
   TextEditingController passwordtextEditingController = TextEditingController();
 
   @override
@@ -80,9 +85,10 @@ class LoginScreen extends StatelessWidget {
                     SizedBox(
                       height: 20.0,
                     ),
-                    RaisedButton(
-                      color: Colors.brown,
-                      textColor: Colors.white,
+                    ElevatedButton(
+                      style: ButtonStyle(
+                          backgroundColor: MaterialStateColor.resolveWith(
+                              (states) => Colors.brown)),
                       child: Container(
                         height: 50.0,
                         child: Center(
@@ -92,9 +98,6 @@ class LoginScreen extends StatelessWidget {
                                 fontSize: 18.0, fontFamily: "Brand Bold"),
                           ),
                         ),
-                      ),
-                      shape: new RoundedRectangleBorder(
-                        borderRadius: new BorderRadius.circular(24.0),
                       ),
                       onPressed: () {
                         if (!emailtextEditingController.text.contains("@")) {
@@ -111,7 +114,7 @@ class LoginScreen extends StatelessWidget {
                   ],
                 ),
               ),
-              FlatButton(
+              TextButton(
                 onPressed: () {
                   Navigator.pushNamedAndRemoveUntil(
                       context, RegisterScreen.idScreen, (route) => false);

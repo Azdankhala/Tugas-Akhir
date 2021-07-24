@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
@@ -11,6 +12,7 @@ import 'package:rider_app/AllWidgets/Divider.dart';
 import 'package:rider_app/AllWidgets/progressDialog.dart';
 import 'package:rider_app/Assistants/assistantMethods.dart';
 import 'package:rider_app/DataHandler/appData.dart';
+import 'package:rider_app/Models/address.dart';
 import 'package:rider_app/Models/directDetails.dart';
 import 'package:rider_app/Screen/loginScreen.dart';
 import 'package:rider_app/Screen/searchScreen.dart';
@@ -64,7 +66,11 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
   }
 
   void displayRideDetailsContainer() async {
-    await getPlaceDirection();
+    var initialPos =
+        Provider.of<AppData>(context, listen: false).pickUpLocation;
+    var finalPos = Provider.of<AppData>(context, listen: false).dropOffLocation;
+
+    await getPlaceDirection(initialPos, finalPos);
 
     setState(() {
       searchContainerHeight = 0;
@@ -72,6 +78,39 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
       bottomPaddingOfMap = 230.0;
       drawerOpen = false;
     });
+  }
+
+  void readHistoryFB(String uid) async {
+    DatabaseReference dbRef =
+        FirebaseDatabase.instance.reference().child("Users");
+
+    var pId, pName, pLat, pLng;
+
+    await dbRef
+        .child(uid)
+        .child('history')
+        .once()
+        .then((DataSnapshot dataSnapshot) {
+      markersSet.clear();
+      Map listHistory = dataSnapshot.value;
+
+      List idhistory = listHistory.keys.toList();
+
+      for (var i = 0; i < idhistory.length; i++) {
+        pId = listHistory[idhistory[i]]['placeId'].toString();
+        pName = listHistory[idhistory[i]]['placeName'].toString();
+        pLat = listHistory[idhistory[i]]['latitude'];
+        pLng = listHistory[idhistory[i]]['longitude'];
+        var ms = Marker(
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+          infoWindow: InfoWindow(title: pName, snippet: "History Place"),
+          position: LatLng(pLat, pLng),
+          markerId: MarkerId(pId),
+        );
+        markersSet.add(ms);
+      }
+    });
+    // print(listHistory);
   }
 
   void locatePosition() async {
@@ -92,14 +131,14 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
   }
 
   static final CameraPosition _kGooglePlex = CameraPosition(
-    target: LatLng(37.42796133580664, -122.085749655962),
-    zoom: 14.4746,
+    target: LatLng(-6.9007446, 107.6220476),
+    zoom: 12.4746,
   );
 
   @override
   Widget build(BuildContext context) {
     String uid = widget.uid;
-
+    readHistoryFB(uid);
     return Scaffold(
       key: scaffoldkey,
       appBar: AppBar(
@@ -413,7 +452,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
                   ],
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 35.0),
+                  padding: const EdgeInsets.symmetric(vertical: 27.0),
                   child: Column(
                     children: [
                       Container(
@@ -450,6 +489,17 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
                                       color: Colors.grey,
                                     ),
                                   ),
+                                  TextButton(
+                                      onPressed: () async {
+                                        await bypassNextClick(uid);
+                                      },
+                                      child: Text(
+                                        'Next',
+                                        style: TextStyle(
+                                          fontSize: 18.0,
+                                          fontFamily: "Brand-Bold",
+                                        ),
+                                      )),
                                 ],
                               ),
                             ],
@@ -467,11 +517,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
     );
   }
 
-  Future<void> getPlaceDirection() async {
-    var initialPos =
-        Provider.of<AppData>(context, listen: false).pickUpLocation;
-    var finalPos = Provider.of<AppData>(context, listen: false).dropOffLocation;
-
+  Future<void> getPlaceDirection(initialPos, finalPos) async {
     var pickUpLatlng = LatLng(initialPos.latitude, initialPos.longitude);
     var dropOffLatlng = LatLng(finalPos.latitude, finalPos.longitude);
 
@@ -542,7 +588,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
         .animateCamera(CameraUpdate.newLatLngBounds(latLngBounds, 70));
 
     Marker pickUpLocMarker = Marker(
-      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange),
+      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
       infoWindow:
           InfoWindow(title: initialPos.placeName, snippet: "My Location"),
       position: pickUpLatlng,
@@ -584,5 +630,57 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
       circlesSet.add(pickUpLocCircle);
       circlesSet.add(dropOffLocCircle);
     });
+  }
+
+  Future<void> bypassNextClick(uid) async {
+    if (markersSet.length == 0) {
+      showDialog(
+          context: context,
+          builder: (BuildContext context) => AlertDialog(
+                title: const Text('Perjalanan Selesai'),
+                content: SingleChildScrollView(
+                  child: ListBody(
+                    children: const <Widget>[
+                      Text('Perjalanan Selesai.'),
+                      Text('Mohon untuk tidak menekan tombol next lagi.'),
+                    ],
+                  ),
+                ),
+                actions: <Widget>[
+                  TextButton(
+                    child: const Text('Oke'),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ],
+              ));
+    } else {
+      DatabaseReference dbRefs =
+          FirebaseDatabase.instance.reference().child("Users");
+
+      var data, dataId;
+      await dbRefs
+          .child(uid)
+          .child('history')
+          .once()
+          .then((DataSnapshot dataSnapshot) {
+        Map listHistory = dataSnapshot.value;
+        dataId = listHistory.keys.toList().first();
+        data = listHistory[dataId];
+      });
+      await dbRefs.child(uid).child('history').child(dataId).remove();
+      Address userPickUpAddress = new Address();
+      userPickUpAddress.placeId = data['placeId'].toString();
+      userPickUpAddress.longitude = data['longitude'];
+      userPickUpAddress.latitude = data['latitude'];
+      userPickUpAddress.placeName = data['placeName'].toString();
+
+      Provider.of<AppData>(context, listen: false).updatePickupToDropOff();
+
+      Provider.of<AppData>(context, listen: false)
+          .updatedropOffLocationAddress(userPickUpAddress);
+      displayRideDetailsContainer();
+    }
   }
 }
