@@ -85,6 +85,11 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
         FirebaseDatabase.instance.reference().child("Users");
 
     var pId, pName, pLat, pLng;
+    // await dbRef.child(uid).child("tripQueue").once().then((DataSnapshot snapshot)=> {
+    //   var data = snapshot.value.toString();
+    //   var dataArray = data.split(",");
+
+    // })
 
     await dbRef
         .child(uid)
@@ -97,10 +102,11 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
       List idhistory = listHistory.keys.toList();
 
       for (var i = 0; i < idhistory.length; i++) {
-        pId = listHistory[idhistory[i]]['placeId'].toString();
-        pName = listHistory[idhistory[i]]['placeName'].toString();
-        pLat = listHistory[idhistory[i]]['latitude'];
-        pLng = listHistory[idhistory[i]]['longitude'];
+        var history = listHistory[idhistory[i]];
+        pId   = history ['placeId'].toString();
+        pName = history ['placeName'].toString();
+        pLat  = history ['latitude'];
+        pLng  = history ['longitude'];
         var ms = Marker(
           icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
           infoWindow: InfoWindow(title: pName, snippet: "History Place"),
